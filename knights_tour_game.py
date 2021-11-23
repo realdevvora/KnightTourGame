@@ -53,333 +53,336 @@ def start():
 start()
 
 
-def run():
-  global gridOriginal, gridUser
-  stack = []
+stack = []
 
-  def randomize():
-    global difficulty, grid
+def randomize():
+  global difficulty, grid
 
-    counter = 0
+  missingCounter = 0
+  i = random.randint(0,9)
+  j = random.randint(0,9)
+  
+
+  while missingCounter < difficulty:
+    if grid[i][j] != 0 and grid[i][j] != 100:
+      grid[i][j] = 0
+      missingCounter+=1
     i = random.randint(0,9)
     j = random.randint(0,9)
     
 
-    while counter < difficulty:
-      if grid[i][j] != 0 and grid[i][j] != 100:
-        grid[i][j] = 0
-        counter+=1
-      i = random.randint(0,9)
-      j = random.randint(0,9)
+def numIndex(num):
+  global grid
+  for i in range(len(grid)):
+    for j in range(len(grid[i])):
+      if (grid[i][j] == num):
+        col = grid[i].index(num)
+        row = i
+        return [row, col]
+
+def inGrid(num):
+  for i in range(len(grid)):
+    for j in range(len(grid[i])):
+      if (grid[i][j] == num):
+        return True
+  return False
+
+def process(grid, stack):
+  num = 100
+  # finding the index of num
+  index = numIndex(num)
+  # adding 100 to the stack to start off
+  stack.append([num])
+
+  while num > 0:
+    
+    # exists = False initially
+    exists = False
+
+    # check each index in stack, if one of the numbers equals num, skip the next conditional
+    for i in stack:
+      if i[0] == num:
+        exists = True
+    # if none of the numbers equal num, we can add it to the stack
+    if (not exists):
+      stack.append([num])
+
+    
+    # run possible() with index, num, and stack
+    if (possible(gridOriginal, grid, index, num, stack)):
       
+      index = numIndex(num-1)
+      
+      # if possible returns True (either a number was already in the grid, and it was in the range of movement from the index that we were at, or there was an empty space)
+      # we will add the index where the move was made to, to the number we are currently at 
+      stack[100-num].append(index)
+      num-=1
 
-  def numIndex(num):
-    global grid
-    for i in range(len(grid)):
-      for j in range(len(grid[i])):
-        if (grid[i][j] == num):
-          col = grid[i].index(num)
-          row = i
-          return [row, col]
+      # then subtract 1 from num, and officially set the index to the new index (weird interaction with the possible method)
+      
+    else:
+      # if it returns false, we will remove the last index of the stack, and add one to the number and find the index of num-1
+      stack.pop()
+      num += 1
+      index = numIndex(num)
+    
+    if (num == 1):
+      print(np.matrix(grid))
+      return
+    elif (num > 100):
+      # if no more moves are possible, then eventually the stack will fill up and num will be greater than 100
+      print("sorry, the puzzle is not possible")
+      return
 
-  def inGrid(num):
-    for i in range(len(grid)):
-      for j in range(len(grid[i])):
-        if (grid[i][j] == num):
-          return True
+def possible(gridOriginal, grid, index, num, stack):
+
+  if (inGrid(num-1)):
+    try:
+      if (grid[index[0] + 2][index[1] + 1] == num-1 and [index[0]+2, index[1]+1] not in stack[100-num] and index[0] + 2 >= 0 and index[1] + 1 >= 0): # [+2, +1]
+
+        return True
+    except Exception:
+      pass
+    try:
+      if (grid[index[0] + 2][index[1] - 1] == num-1 and [index[0]+2, index[1]-1] not in stack[100-num] and index[0] + 2 >= 0 and index[1] - 1 >= 0): # [+2, -1]
+        
+        return True
+    except Exception:
+      pass
+    try:
+      if (grid[index[0] + 1][index[1] + 2] == num-1 and [index[0]+1, index[1]+2] not in stack[100-num] and index[0] + 1 >= 0 and index[1] + 2 >= 0): # [+1, +2]
+        
+        return True
+    except Exception:
+      pass
+    try:
+      if (grid[index[0] + 1][index[1] - 2] == num-1 and [index[0]+1, index[1]-2] not in stack[100-num] and index[0] +1 >= 0 and index[1] - 2 >= 0): # [+1, -2]
+        
+        return True
+    except Exception:
+      pass
+    try:
+      if (grid[index[0] - 1][index[1] - 2] == num-1 and [index[0]-1, index[1]-2] not in stack[100-num] and index[0] - 1 >= 0 and index[1] - 2 >= 0): # [-1, -2]
+        
+        return True
+    except Exception:
+      pass
+    try:
+      if (grid[index[0] - 1][index[1] + 2] == num-1 and [index[0]-1, index[1]+2] not in stack[100-num] and index[0] - 1 >= 0 and index[1] + 2 >= 0): # [-1, +2]
+        
+        return True
+    except Exception:
+      pass
+    try: 
+      if (grid[index[0] - 2][index[1] - 1] == num-1 and [index[0]-2, index[1]-1] not in stack[100-num] and index[0] - 2 >= 0 and index[1] - 1 >= 0): # [-2, -1]
+        
+        return True
+    except Exception:
+      pass
+    try: 
+      if (grid[index[0] - 2][index[1] + 1] == num-1 and [index[0]-2, index[1]+1] not in stack[100-num] and index[0] - 2 >= 0 and index[1] + 1 >= 0): # [-2, +1]
+        return True
+    except Exception:
+      pass
+    if grid[index[0]][index[1]] != gridOriginal[index[0]][index[1]]:
+      grid[index[0]][index[1]] = 0
+    return False
+  else:
+    try:
+      if (grid[index[0] + 2][index[1] + 1] == 0 and [index[0]+2, index[1]+1] not in stack[100-num] and index[0] + 2 >= 0 and index[1] + 1 >= 0): # [+2, +1]
+        
+        grid[index[0]+2][index[1]+1] = num-1
+        return True
+    except Exception:
+      pass
+    try: 
+      if (grid[index[0] + 2][index[1] - 1] == 0 and [index[0]+2, index[1]-1] not in stack[100-num] and index[0] + 2 >= 0 and index[1] - 1 >= 0): # [+2, -1]
+        
+        grid[index[0]+2][index[1]-1] = num-1
+        return True
+    except Exception:
+      pass
+    try: 
+      if (grid[index[0] + 1][index[1] + 2] == 0 and [index[0]+1, index[1]+2] not in stack[100-num] and index[0] + 1 >= 0 and index[1] + 2 >= 0): # [+1, +2]
+        
+        grid[index[0]+1][index[1]+2] = num-1
+        return True
+    except Exception:
+      pass
+    try: 
+      if (grid[index[0] + 1][index[1] - 2] == 0 and [index[0]+1, index[1]-2] not in stack[100-num] and index[0] + 1 >= 0 and index[1] - 2 >= 0): # [+1, -2]
+        
+        grid[index[0] + 1][index[1] - 2] = num-1
+        return True
+    except Exception:
+      pass
+    try: 
+      if (grid[index[0] - 1][index[1] - 2] == 0 and [index[0]-1, index[1]-2] not in stack[100-num] and index[0] - 1 >= 0 and index[1] - 2 >= 0): # [-1, -2]
+        
+        grid[index[0]-1][index[1]-2] = num-1
+        return True
+        
+    except Exception:
+      pass
+    try: 
+      if (grid[index[0] - 1][index[1] + 2] == 0 and [index[0]-1, index[1]+2] not in stack[100-num] and index[0] - 1 >= 0 and index[1] + 2 >= 0): # [-1, +2]
+  
+        grid[index[0]-1][index[1]+2] = num-1
+        return True
+    except Exception:
+      pass
+    try: 
+      if (grid[index[0] - 2][index[1] - 1] == 0 and [index[0]-2, index[1]-1] not in stack[100-num] and index[0] - 2 >= 0 and index[1] - 1 >= 0): # [-2, -1]
+        
+        grid[index[0]-2][index[1]-1] = num-1
+        return True
+    except Exception:
+      pass
+    try: 
+      if (grid[index[0] - 2][index[1] + 1] == 0 and [index[0]-2, index[1]+1] not in stack[100-num] and index[0] - 2 >= 0 and index[1] + 1 >= 0): # [-2, +1]
+        grid[index[0]-2][index[1]+1] = num-1
+        return True
+    except Exception:
+      pass
+    if grid[index[0]][index[1]] != gridOriginal[index[0]][index[1]]:
+      grid[index[0]][index[1]] = 0
     return False
 
-  def process(grid, stack):
-    num = 100
-    # finding the index of num
-    index = numIndex(num)
-    # adding 100 to the stack to start off
-    stack.append([num])
 
-    while num > 0:
-      
-      # exists = False initially
-      exists = False
 
-      # check each index in stack, if one of the numbers equals num, skip the next conditional
-      for i in stack:
-        if i[0] == num:
-          exists = True
-      # if none of the numbers equal num, we can add it to the stack
-      if (not exists):
-        stack.append([num])
+def userPossible(gridUser, index, num):
+  if (inGrid(num-1)):
+    try:
+      if (gridUser[index[0] + 2][index[1] + 1] == num-1 and index[0] + 2 >= 0 and index[1] + 1 >= 0): # [+2, +1]
 
-      
-      # run possible() with index, num, and stack
-      if (possible(gridOriginal, grid, index, num, stack)):
+        return True
+    except Exception:
+      pass
+    try:
+      if (gridUser[index[0] + 2][index[1] - 1] == num-1 and index[0] + 2 >= 0 and index[1] - 1 >= 0): # [+2, -1]
         
-        index = numIndex(num-1)
+        return True
+    except Exception:
+      pass
+    try:
+      if (gridUser[index[0] + 1][index[1] + 2] == num-1 and index[0] + 1 >= 0 and index[1] + 2 >= 0): # [+1, +2]
         
-        # if possible returns True (either a number was already in the grid, and it was in the range of movement from the index that we were at, or there was an empty space)
-        # we will add the index where the move was made to, to the number we are currently at 
-        stack[100-num].append(index)
-        num-=1
-
-        # then subtract 1 from num, and officially set the index to the new index (weird interaction with the possible method)
+        return True
+    except Exception:
+      pass
+    try:
+      if (gridUser[index[0] + 1][index[1] - 2] == num-1 and index[0] +1 >= 0 and index[1] - 2 >= 0): # [+1, -2]
         
-      else:
-        # if it returns false, we will remove the last index of the stack, and add one to the number and find the index of num-1
-        stack.pop()
-        num += 1
-        index = numIndex(num)
-      
-      if (num == 1):
-        print(np.matrix(grid))
-        return
-      elif (num > 100):
-        # if no more moves are possible, then eventually the stack will fill up and num will be greater than 100
-        print("sorry, the puzzle is not possible")
-        return
+        return True
+    except Exception:
+      pass
+    try:
+      if (gridUser[index[0] - 1][index[1] - 2] == num-1 and index[0] - 1 >= 0 and index[1] - 2 >= 0): # [-1, -2]
+        
+        return True
+    except Exception:
+      pass
+    try:
+      if (gridUser[index[0] - 1][index[1] + 2] == num-1 and index[0] - 1 >= 0 and index[1] + 2 >= 0): # [-1, +2]
+        
+        return True
+    except Exception:
+      pass
+    try: 
+      if (gridUser[index[0] - 2][index[1] - 1] == num-1 and index[0] - 2 >= 0 and index[1] - 1 >= 0): # [-2, -1]
+        
+        return True
+    except Exception:
+      pass
+    try: 
+      if (gridUser[index[0] - 2][index[1] + 1] == num-1 and index[0] - 2 >= 0 and index[1] + 1 >= 0): # [-2, +1]
+        return True
+    except Exception:
+      pass
+  return False
 
-  def possible(gridOriginal, grid, index, num, stack):
+new_items = []
+field_indices = []
+counter = -1
 
-    if (inGrid(num-1)):
-      try:
-        if (grid[index[0] + 2][index[1] + 1] == num-1 and [index[0]+2, index[1]+1] not in stack[100-num] and index[0] + 2 >= 0 and index[1] + 1 >= 0): # [+2, +1]
+def numIndexUser(num):
+  global gridUser
+  for i in range(len(gridUser)):
+    for j in range(len(gridUser[i])):
+      if (gridUser[i][j] == num):
+        col = gridUser[i].index(num)
+        row = i
+        return [row, col]
 
-          return True
-      except Exception:
-        pass
-      try:
-        if (grid[index[0] + 2][index[1] - 1] == num-1 and [index[0]+2, index[1]-1] not in stack[100-num] and index[0] + 2 >= 0 and index[1] - 1 >= 0): # [+2, -1]
-          
-          return True
-      except Exception:
-        pass
-      try:
-        if (grid[index[0] + 1][index[1] + 2] == num-1 and [index[0]+1, index[1]+2] not in stack[100-num] and index[0] + 1 >= 0 and index[1] + 2 >= 0): # [+1, +2]
-          
-          return True
-      except Exception:
-        pass
-      try:
-        if (grid[index[0] + 1][index[1] - 2] == num-1 and [index[0]+1, index[1]-2] not in stack[100-num] and index[0] +1 >= 0 and index[1] - 2 >= 0): # [+1, -2]
-          
-          return True
-      except Exception:
-        pass
-      try:
-        if (grid[index[0] - 1][index[1] - 2] == num-1 and [index[0]-1, index[1]-2] not in stack[100-num] and index[0] - 1 >= 0 and index[1] - 2 >= 0): # [-1, -2]
-          
-          return True
-      except Exception:
-        pass
-      try:
-        if (grid[index[0] - 1][index[1] + 2] == num-1 and [index[0]-1, index[1]+2] not in stack[100-num] and index[0] - 1 >= 0 and index[1] + 2 >= 0): # [-1, +2]
-          
-          return True
-      except Exception:
-        pass
-      try: 
-        if (grid[index[0] - 2][index[1] - 1] == num-1 and [index[0]-2, index[1]-1] not in stack[100-num] and index[0] - 2 >= 0 and index[1] - 1 >= 0): # [-2, -1]
-          
-          return True
-      except Exception:
-        pass
-      try: 
-        if (grid[index[0] - 2][index[1] + 1] == num-1 and [index[0]-2, index[1]+1] not in stack[100-num] and index[0] - 2 >= 0 and index[1] + 1 >= 0): # [-2, +1]
-          return True
-      except Exception:
-        pass
-      if grid[index[0]][index[1]] != gridOriginal[index[0]][index[1]]:
-        grid[index[0]][index[1]] = 0
-      return False
+def checkGrid(field_indices):
+  num = 100
+  index = numIndexUser(num)
+  while True:
+    if (userPossible(gridUser, index, num)):
+      if (index in field_indices):
+        new_items[field_indices.index(index)]["bg"] = "green"
+      num-=1
+      index = numIndexUser(num)
     else:
-      try:
-        if (grid[index[0] + 2][index[1] + 1] == 0 and [index[0]+2, index[1]+1] not in stack[100-num] and index[0] + 2 >= 0 and index[1] + 1 >= 0): # [+2, +1]
-          
-          grid[index[0]+2][index[1]+1] = num-1
-          return True
-      except Exception:
-        pass
-      try: 
-        if (grid[index[0] + 2][index[1] - 1] == 0 and [index[0]+2, index[1]-1] not in stack[100-num] and index[0] + 2 >= 0 and index[1] - 1 >= 0): # [+2, -1]
-          
-          grid[index[0]+2][index[1]-1] = num-1
-          return True
-      except Exception:
-        pass
-      try: 
-        if (grid[index[0] + 1][index[1] + 2] == 0 and [index[0]+1, index[1]+2] not in stack[100-num] and index[0] + 1 >= 0 and index[1] + 2 >= 0): # [+1, +2]
-          
-          grid[index[0]+1][index[1]+2] = num-1
-          return True
-      except Exception:
-        pass
-      try: 
-        if (grid[index[0] + 1][index[1] - 2] == 0 and [index[0]+1, index[1]-2] not in stack[100-num] and index[0] + 1 >= 0 and index[1] - 2 >= 0): # [+1, -2]
-          
-          grid[index[0] + 1][index[1] - 2] = num-1
-          return True
-      except Exception:
-        pass
-      try: 
-        if (grid[index[0] - 1][index[1] - 2] == 0 and [index[0]-1, index[1]-2] not in stack[100-num] and index[0] - 1 >= 0 and index[1] - 2 >= 0): # [-1, -2]
-          
-          grid[index[0]-1][index[1]-2] = num-1
-          return True
-          
-      except Exception:
-        pass
-      try: 
-        if (grid[index[0] - 1][index[1] + 2] == 0 and [index[0]-1, index[1]+2] not in stack[100-num] and index[0] - 1 >= 0 and index[1] + 2 >= 0): # [-1, +2]
-    
-          grid[index[0]-1][index[1]+2] = num-1
-          return True
-      except Exception:
-        pass
-      try: 
-        if (grid[index[0] - 2][index[1] - 1] == 0 and [index[0]-2, index[1]-1] not in stack[100-num] and index[0] - 2 >= 0 and index[1] - 1 >= 0): # [-2, -1]
-          
-          grid[index[0]-2][index[1]-1] = num-1
-          return True
-      except Exception:
-        pass
-      try: 
-        if (grid[index[0] - 2][index[1] + 1] == 0 and [index[0]-2, index[1]+1] not in stack[100-num] and index[0] - 2 >= 0 and index[1] + 1 >= 0): # [-2, +1]
-          grid[index[0]-2][index[1]+1] = num-1
-          return True
-      except Exception:
-        pass
-      if grid[index[0]][index[1]] != gridOriginal[index[0]][index[1]]:
-        grid[index[0]][index[1]] = 0
+      if (index in field_indices):
+        new_items[field_indices.index(index)]["bg"] = "red"
       return False
+    if (num == 1):
+      return True
 
+# if the number that the user entered was incorrect, highlight the square where it was incorrect
+# if they were correct, highlight the square green
+
+def userSolution():
+  global gridUser
+  incomplete = False
+  for i in new_items:
+    i["bg"] = "white"
+
+  for index in range(len(field_indices)):
+    isint = True
+    try:
+      int(new_items[index].get("1.0", "end-1c"))
+    except Exception:
+      isint = False
+      pass
+
+    if (new_items[index].get("1.0", "end-1c") != '' and isint):
+      gridUser[field_indices[index][0]][field_indices[index][1]] = int(new_items[index].get("1.0", "end-1c"))
+    else:
+      gridUser[field_indices[index][0]][field_indices[index][1]] = 0
+      new_items[index]["bg"] = "blue"
+      incomplete = True
+    
+  if not incomplete:
+    if (checkGrid(field_indices) == True):
+      messagebox.showinfo("Good Job!", "Nice work, your solution to the puzzle is correct!")
+      sys.exit()
+    else:
+      messagebox.showinfo("Nice Try!", "Sorry, your grid does not match")
+  else:
+    messagebox.showerror("Error: Incomplete Information", "The boxe(s) highlighted in blue have incomplete/invalid information (please enter a number)")
+
+def solve():
+  global grid
+  stack = []
+  process(grid, stack)
+
+def clearText():
+  for i in range(len(new_items)):
+    new_items[i].delete("1.0", "end-1c")
+    new_items[i]["bg"] = "white"
+  
+
+def run():
+  global counter, gridOriginal, gridUser
   process(grid, stack)
 
   randomize()
 
   gridOriginal = copy.deepcopy(grid)
   gridUser = copy.deepcopy(grid)
-
-  def userPossible(gridUser, index, num):
-    if (inGrid(num-1)):
-      try:
-        if (gridUser[index[0] + 2][index[1] + 1] == num-1 and index[0] + 2 >= 0 and index[1] + 1 >= 0): # [+2, +1]
-
-          return True
-      except Exception:
-        pass
-      try:
-        if (gridUser[index[0] + 2][index[1] - 1] == num-1 and index[0] + 2 >= 0 and index[1] - 1 >= 0): # [+2, -1]
-          
-          return True
-      except Exception:
-        pass
-      try:
-        if (gridUser[index[0] + 1][index[1] + 2] == num-1 and index[0] + 1 >= 0 and index[1] + 2 >= 0): # [+1, +2]
-          
-          return True
-      except Exception:
-        pass
-      try:
-        if (gridUser[index[0] + 1][index[1] - 2] == num-1 and index[0] +1 >= 0 and index[1] - 2 >= 0): # [+1, -2]
-          
-          return True
-      except Exception:
-        pass
-      try:
-        if (gridUser[index[0] - 1][index[1] - 2] == num-1 and index[0] - 1 >= 0 and index[1] - 2 >= 0): # [-1, -2]
-          
-          return True
-      except Exception:
-        pass
-      try:
-        if (gridUser[index[0] - 1][index[1] + 2] == num-1 and index[0] - 1 >= 0 and index[1] + 2 >= 0): # [-1, +2]
-          
-          return True
-      except Exception:
-        pass
-      try: 
-        if (gridUser[index[0] - 2][index[1] - 1] == num-1 and index[0] - 2 >= 0 and index[1] - 1 >= 0): # [-2, -1]
-          
-          return True
-      except Exception:
-        pass
-      try: 
-        if (gridUser[index[0] - 2][index[1] + 1] == num-1 and index[0] - 2 >= 0 and index[1] + 1 >= 0): # [-2, +1]
-          return True
-      except Exception:
-        pass
-    return False
-
-  new_items = []
-  field_indices = []
-  counter = -1
-
-  def numIndexUser(num):
-    global gridUser
-    for i in range(len(gridUser)):
-      for j in range(len(gridUser[i])):
-        if (gridUser[i][j] == num):
-          col = gridUser[i].index(num)
-          row = i
-          return [row, col]
-
-  def checkGrid(field_indices):
-    num = 100
-    index = numIndexUser(num)
-    while True:
-      if (userPossible(gridUser, index, num)):
-        if (index in field_indices):
-          new_items[field_indices.index(index)]["bg"] = "green"
-        num-=1
-        index = numIndexUser(num)
-      else:
-        if (index in field_indices):
-          new_items[field_indices.index(index)]["bg"] = "red"
-        return False
-      if (num == 1):
-        return True
-
-  # if the number that the user entered was incorrect, highlight the square where it was incorrect
-  # if they were correct, highlight the square green
-
-  def userSolution():
-    global gridUser
-    incomplete = False
-    for i in new_items:
-      i["bg"] = "white"
-
-    for index in range(len(field_indices)):
-      isint = True
-      try:
-        int(new_items[index].get("1.0", "end-1c"))
-      except Exception:
-        isint = False
-        pass
-
-      if (new_items[index].get("1.0", "end-1c") != '' and isint):
-        gridUser[field_indices[index][0]][field_indices[index][1]] = int(new_items[index].get("1.0", "end-1c"))
-      else:
-        gridUser[field_indices[index][0]][field_indices[index][1]] = 0
-        new_items[index]["bg"] = "blue"
-        incomplete = True
-      
-    if not incomplete:
-      if (checkGrid(field_indices) == True):
-        messagebox.showinfo("Good Job!", "Nice work, your solution to the puzzle is correct!")
-        sys.exit()
-      else:
-        messagebox.showinfo("Nice Try!", "Sorry, your grid does not match")
-    else:
-      messagebox.showerror("Error: Incomplete Information", "The boxe(s) highlighted in blue have incomplete/invalid information (please enter a number)")
-
-  def solve():
-    global grid
-    stack = []
-    process(grid, stack)
-
-  def clearText():
-    for i in range(len(new_items)):
-      new_items[i].delete("1.0", "end-1c")
-      new_items[i]["bg"] = "white"
-
+  
   for i in range(10):
       for j in range(10):
           if grid[i][j] != 0:
@@ -400,7 +403,6 @@ def run():
 
   solveBtn = Button(root, text = "Solve", command=solve)
   solveBtn.grid(row=12, column=0)
-  
 
 root.resizable(width=False, height=False)
 root.mainloop()
