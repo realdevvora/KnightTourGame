@@ -75,7 +75,7 @@ def numIndex(num, gridEntered):
         return [row, col]
 
 def inGrid(num, gridEntered):
-  for i in range(len(grid)):
+  for i in range(len(gridEntered)):
     for j in range(len(gridEntered[i])):
       if (gridEntered[i][j] == num):
         return True
