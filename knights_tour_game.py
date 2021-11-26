@@ -7,6 +7,7 @@ import random
 
 root = Tk()
 root.title("Knight's Tour Puzzle")
+root.resizable(0,0)
 grid = [[62, 33, 36, 0, 60, 0, 0, 15, 0, 0],
         [0, 0, 0, 76, 37, 0, 0, 84, 0, 0],
         [32, 0, 0, 0, 78, 89, 0, 0, 82, 19],
@@ -44,6 +45,7 @@ def start():
   global easy, medium, hard
   
   begin.title("Choose A Difficulty")
+  begin.lift(root)
   Label(begin, text="What difficulty would you like to select?").pack()
   easy = Button(begin, text="Easy", command=gridEasy).pack()
   medium = Button(begin, text="Medium", command=gridMedium).pack()
@@ -178,7 +180,7 @@ def possible(gridOriginal, grid, index, num, stack):
         return True
     except Exception:
       pass
-    if grid[index[0]][index[1]] != gridOriginal[index[0]][index[1]]:
+    if not inGrid(num, gridEntered=gridOriginal):
       grid[index[0]][index[1]] = 0
     return False
   else:
@@ -238,7 +240,7 @@ def possible(gridOriginal, grid, index, num, stack):
         return True
     except Exception:
       pass
-    if grid[index[0]][index[1]] != gridOriginal[index[0]][index[1]]:
+    if not inGrid(num, gridEntered=gridOriginal):
       grid[index[0]][index[1]] = 0
     return False
 
@@ -289,7 +291,6 @@ def userPossible(gridUser, index, num):
 
 new_items = []
 field_indices = []
-counter = -1
 
 
 def checkGrid(field_indices):
@@ -370,7 +371,7 @@ def fillGrid():
     new_items[i].insert("1.0", "1")
 
 def run():
-  global counter, gridOriginal, gridUser
+  global gridOriginal, gridUser
 
   process(grid, stack)
   randomize(difficulty)
@@ -385,7 +386,6 @@ def run():
           else:
             e = Text(root, width=5, height=2)
             e.grid(row=i, column=j)
-            counter+=1
             new_items.append(e)
             field_indices.append([i, j])
 
